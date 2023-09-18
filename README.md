@@ -1,5 +1,5 @@
 # IMU-Head-Tracker
-I wanted to try using an IMU to track the movements of my head, and translate them into DCS World.
+Using an Arduino Nano 33 BLE, I wanted to translate the movements recorded by the IMU into my pilot's head in DCS World 
 
 # Background:
 Using an Arduino Nano 33 BLE (LSM9DS1), I wanted to try to translate the movements of my head, to my pilots head in game - DCS World (https://www.digitalcombatsimulator.com/en/).
