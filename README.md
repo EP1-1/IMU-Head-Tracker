@@ -23,11 +23,11 @@ A magnetometer measures Earth's magnetic field with 3 DoF. A magnetometer makes 
 # Sensor Fusion:
 
 In order to supress the weakneses present in all 3 sensors, sensor fusion is required. [Sensor Fusion](https://en.wikipedia.org/wiki/Sensor_fusion) is the process of merging the data from all 3 sensors to reduce the weaknesses present in one of the sensors.
-There are many different types of sensor fusion algorithms. The most commonly used algorithm for these applications are the Madgwick Filter, Mahoney Filter, and Kalman Filter. I tried all 3 of these filters and found most success in the Madgwick Filter, so I mainly focused on that. Also, the Madgwick filter is the most commonly used for these types of applications. The [Kalman Filter](https://en.wikipedia.org/wiki/Kalman_filter) is used in many different scenarios, and its strength is predicting a future state based on measurements taken over time. But, that was not a requirement for this application, so this algorithm was not used. The [Mahoney Filter](https://ahrs.readthedocs.io/en/latest/filters/mahony.html), is similar to the Madgwick, but not as good at obtaining heading orientation. I found this to be true during my testing (which in my case could have been due to a lack of testing).
+There are many different types of sensor fusion algorithms. The most commonly used algorithm for these applications are the Madgwick Filter, Mahoney Filter, and Kalman Filter. I tried all 3 of these filters and found most success in the Madgwick Filter, so I mainly focused on that. Also, the Madgwick filter is the most commonly used for these types of applications. The [Kalman Filter](https://en.wikipedia.org/wiki/Kalman_filter) is used in many different scenarios and its strength is predicting a future state based on measurements taken over time. But, that was not a requirement for this application, so this algorithm was not used. The [Mahoney Filter](https://ahrs.readthedocs.io/en/latest/filters/mahony.html), is similar to the Madgwick, but not as good at obtaining heading orientation. I found this to be true during my testing.
 
 Arduino already has a library for the Madgwick Filter, so I didn't have to actually rebuild the entire algorithm, I just had to implement it. The library is called [MadgwickAHRS](https://github.com/arduino-libraries/MadgwickAHRS). The "AHRS" part stands for Atitude Heading Reference System and refers to finding absolute heading of the device. Digital Combat Simulator's pilot's head movement requires an absolute orientation, so relative movements (measuring only the changes in movement instead of measuring exactly where the device is pointed relative to where it started) will not work because the pilots head would reset to point (0,0) each time no movement is detected. These absolute measurements are called [Euler Angles](https://en.wikipedia.org/wiki/Euler_angles).
 
-Measuring pitch and roll angle is super easy - the accelerometer can take care of that inherently. The hard part - and the reason sensor fusion is needed - is because of measuring yaw (heading). Yaw is the twisting side-to-side motion. In this case, its the user turning their head side to side. Getting an accurate heading is very difficult due to drift and because it requires advanced computation (a filter). This is where 99% of the difficulties with this project emerged. 
+Measuring pitch and roll angle is super easy - the accelerometer can take care of that inherently. The hard part - and the reason sensor fusion is needed - is because of measuring yaw (heading). Yaw is the twisting side-to-side motion (z-axis). In this case, its the user turning their head side to side. Getting an accurate heading is very difficult due to drift and because it requires advanced computation (a filter). This is where 99% of the difficulties with this project emerged. 
 
 # How it Works:
 
@@ -43,7 +43,7 @@ Fourth, the emulated joystick input data is sent to an app called [opentrack](ht
 
 # Difficulties/Findings:
 
-Since my Arduino operates very close to my PC, I found that there is a considerably large amount of EMI to work around and there is no easy solution. The head-tracker works initially decently accurate at first. Some of the inaccuracies can be mitigated by smoothing the data - basically just creating a data buffer (of 10 in my case) - then just computing the average value of that buffer to use for the final value sent out to the joystick output. 
+Since my Arduino operates very close to my PC, I found that there is a considerably large amount of EMI to work around and there is no easy solution. The head-tracker works initially decently accurately at first. Some of the inaccuracies can be mitigated by smoothing the data - basically just creating a data buffer (of 10 in my case) - then just computing the average value of that buffer to use for the final value sent out to the joystick output. 
 
 Unfortunately, after a while, the drift problem starts to set in. The best way to describe this phenomenon is that the device gets "lost" after moving it around too much. It temporarily cannot find its accurate/actual position. When this happens, I found that letting it sit stationary for a few seconds allows it to find the right orientation again. 
 
@@ -51,13 +51,13 @@ This problem is what makes an intertial head tracker not practical - at least in
 
 I even tried using another application called [HeadTracker](https://github.com/dlktdr/HeadTracker) made by dlkrdr to solve the issue, or to at least give me some ideas. The app comes with is own custom Arduino firmware, a really nice UI, magnetometer calibration, gyro and acceletomter calibration, etc. 
 
-Using this app didn't work and the Arduino was still too drifty. I contacted the developer who was very helpful and tried my own methods to remedy the issue, with no luck. 
+Using this app didn't fix the issue I was trying to solve, and the Arduino was still too drifty. I contacted the developer (who was very helpful) and tried my own methods to remedy the issue, with no luck. 
 
 Disabling the magnetometer sort of helps temporarily, but eventually the drift will completely take over a just a few seconds to minutes later.
 
 # Conclusion:
 
-Honestly, I wanted to try this project just because I wanted to see if I could do it. I was able to make a working prototype, but the complexities associated with the weaknesses of this Arduino's IMU made is undoable in the amount of time I was willing to spend - which was already a lot (assuming that this can actually be done with a $25 Arduino board). This was a super interesting project for me because I learned so much about IMU's, sensor fusion algorithms, using Github and downloading open source programs, and just more experience with an Arduino. This project required me to code both in C++ (for Arduino) and Python for the gamepad emulation. Also, this project required me to really brainstorm around several large issues:
+Honestly, I wanted to try this project just because I wanted to see if I could do it. I was able to make a working prototype, but the complexities associated with the weaknesses of this Arduino's IMU made is undoable in the amount of time I was willing to spend - which was already a lot (and assuming that producing a stable headtracker that you would actually want to use can actually be done with a $25 Arduino board, which remains a question). This was a super interesting project for me because I learned so much about IMU's, sensor fusion algorithms, using Github and downloading open source programs, and just more experience with an Arduino. This project required me to code both in C++ (for Arduino) and Python for the gamepad emulation. Also, this project required me to really brainstorm around several large issues:
 
 First, the accurate heading problem - being able to calculate the devices absolute heading relative to an initial point (Euler angles). 
 
@@ -67,5 +67,5 @@ Third, researching and choosing the correct sensor fusion filter. It might seem 
 
 Fourth, the drift problem. Even though I didn't fully overcome this problem, I was able to diagnose the problem and attempt to remedy it. Talking to one of the engineers at the engineering company I interned at over the summer 2023 - where I did electrical and electronics engineering work - IMUs can be very difficult to work with. Many times, production-level equipment doesn't just use intertial tracking to find orientation - because it would encounter the exact the same issues as my device. Some of the equipment suppliments the intertial data with GPS reference so that the drift problem is mostly eliminated. This seems to be the best way - from my research - of fixing this issue (using GPS). 
 
-
+In conclusion, even though I couldn't get the Arduino to the core of the stable headtracker (within a reasonable amount of time) that I wanted to build, I was able to demonstrate a working proof-of-concept. I learned a ton about filters and their various strengths/weaknesses, and the process and variables that an engineer must consider when bringing projects to life.
 
